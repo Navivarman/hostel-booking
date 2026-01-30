@@ -3,5 +3,10 @@ package com.hostelbooking.app.repository;
 import com.hostelbooking.app.model.Hostel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface HostelRepository extends JpaRepository<Hostel,Long> {
+import java.util.Optional;
+
+
+public interface HostelRepository extends JpaRepository<Hostel, Long> {
+    Optional<Hostel> findByName(String name);
 }
+

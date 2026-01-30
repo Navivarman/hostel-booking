@@ -19,7 +19,7 @@ public class Hostel {
     private Long id;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(unique = true,nullable = false)
     private String name;
 
     @NotNull
@@ -27,5 +27,5 @@ public class Hostel {
 
     @NotNull
     @Column(name = "total_rooms")
-    private int totalRooms;
+    private Integer totalRooms;
 }
