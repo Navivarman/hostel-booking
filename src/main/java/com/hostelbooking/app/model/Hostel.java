@@ -1,11 +1,14 @@
 package com.hostelbooking.app.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -28,4 +31,12 @@ public class Hostel {
     @NotNull
     @Column(name = "total_rooms")
     private Integer totalRooms;
+
+    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "hostel",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Room> rooms;
 }

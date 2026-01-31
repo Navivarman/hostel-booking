@@ -1,5 +1,6 @@
 package com.hostelbooking.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,8 @@ public class Room {
     @Column(name = "available_beds")
     private int availableBeds;
 
-    @ManyToOne
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hostel_id",nullable = false)
     private Hostel hostel;
 }
