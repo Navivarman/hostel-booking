@@ -7,6 +7,9 @@ import com.hostelbooking.app.repository.HostelRepository;
 import com.hostelbooking.app.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.stylesheets.LinkStyle;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,5 +27,29 @@ public class RoomService {
                 .hostel(hostel).build();
 
         return roomRepository.save(room);
+    }
+
+    public List<Room> getRoomsHostelById(Long hostelId){
+        return roomRepository.findByHostelId(hostelId);
+    }
+
+    public List<Room> getAvailableRoomsByHostel(Long hostelId){
+        return roomRepository.findByHostelIdAndAvailableBedsGreaterThan(hostelId,0);
+    }
+
+    public void reduceAvailableBeds(Room room){
+        if(room.getAvailableBeds() <= 0){
+            throw new RuntimeException("No beds available in this room");
+        }
+        room.setAvailableBeds(room.getAvailableBeds() - 1);
+        roomRepository.save(room);
+    }
+
+    public void increaseAvailableBeds(Room room){
+        if(room.getAvailableBeds() == room.getCapacity()){
+            throw new RuntimeException("More than capacity of beds increase");
+        }
+        room.setAvailableBeds(room.getAvailableBeds() + 1);
+        roomRepository.save(room);
     }
 }
