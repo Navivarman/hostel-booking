@@ -11,6 +11,8 @@ import com.hostelbooking.app.repository.RoomRepository;
 import com.hostelbooking.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import java.time.LocalDate;
 
@@ -106,6 +108,27 @@ public class BookingService {
                 .bookingDate(booking.getBookingDate())
                 .status(booking.getStatus().name())
                 .build();
+    }
+
+    public List<BookingResponse> getBookingsByUser(Long userId) {
+
+        // Validate user exists
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+
+        return bookings.stream()
+                .map(booking -> BookingResponse.builder()
+                        .bookingId(booking.getId())
+                        .userName(booking.getUser().getName())
+                        .hostelName(booking.getRoom().getHostel().getName())
+                        .roomNumber(booking.getRoom().getRoomNumber())
+                        .bookingDate(booking.getBookingDate())
+                        .status(booking.getStatus().name())
+                        .build()
+                )
+                .collect(Collectors.toList());
     }
 
 }
