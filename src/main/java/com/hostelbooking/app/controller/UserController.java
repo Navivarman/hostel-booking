@@ -19,8 +19,15 @@ public class UserController {
     private final UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<User> createUser(@RequestBody User user){
-        return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
+    public ResponseEntity<?> createUser(@RequestBody User user){
+        try{
+            return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
+        } catch (RuntimeException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ex.getMessage());
+        }
+
     }
 
     @PostMapping("/login")

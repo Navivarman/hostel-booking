@@ -64,6 +64,13 @@ public class BookingController {
                 bookingService.getBookingsByUser(userId)
         );
     }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<BookingResponse>> getPendingBookings() {
+        return ResponseEntity.ok(
+                bookingService.getPendingBookings()
+        );
+    }
 }
 
 

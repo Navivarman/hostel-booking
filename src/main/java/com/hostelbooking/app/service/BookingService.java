@@ -131,5 +131,23 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public List<BookingResponse> getPendingBookings() {
+
+        List<Booking> bookings =
+                bookingRepository.findByStatus(BookingStatus.PENDING);
+
+        return bookings.stream()
+                .map(booking -> BookingResponse.builder()
+                        .bookingId(booking.getId())
+                        .userName(booking.getUser().getName())
+                        .hostelName(booking.getRoom().getHostel().getName())
+                        .roomNumber(booking.getRoom().getRoomNumber())
+                        .bookingDate(booking.getBookingDate())
+                        .status(booking.getStatus().name())
+                        .build()
+                )
+                .collect(Collectors.toList());
+    }
+
 }
 
