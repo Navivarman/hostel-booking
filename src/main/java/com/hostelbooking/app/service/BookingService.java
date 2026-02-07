@@ -149,5 +149,34 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public BookingResponse cancelBooking(Long bookingId, Long userId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        // 🔐 Ownership check
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You are not allowed to cancel this booking");
+        }
+
+        if (booking.getStatus() == BookingStatus.REJECTED ||
+                booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking cannot be cancelled");
+        }
+
+        // If approved → free bed
+        if (booking.getStatus() == BookingStatus.APPROVED) {
+            Room room = booking.getRoom();
+            room.setAvailableBeds(room.getAvailableBeds() + 1);
+            roomRepository.save(room);
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        return mapToBookingResponse(booking);
+    }
+
+
 }
 

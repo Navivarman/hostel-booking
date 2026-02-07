@@ -71,6 +71,23 @@ public class BookingController {
                 bookingService.getPendingBookings()
         );
     }
+
+    @PutMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancelBooking(
+            @PathVariable Long bookingId,
+            @RequestParam Long userId) {
+
+        try {
+            return ResponseEntity.ok(
+                    bookingService.cancelBooking(bookingId, userId)
+            );
+        } catch (RuntimeException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ex.getMessage());
+        }
+    }
+
 }
 
 
