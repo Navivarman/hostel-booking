@@ -3,6 +3,7 @@ package com.hostelbooking.app.service;
 import com.hostelbooking.app.model.User;
 import com.hostelbooking.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,11 +11,17 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User createUser(User user){
-        if(userRepository.existsByEmail(user.getEmail())){
+    public User createUser(User user) {
+
+        if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("User already exists!");
         }
+
+        // encode password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         return userRepository.save(user);
     }
 
@@ -23,15 +30,17 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.getPassword().equals(password)) {
+        // ✅ correct password comparison
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Incorrect password");
         }
 
         return user.getName() + " login successfully!";
     }
 
-
-    public User getUserById(Long userId){
-        return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found!"));
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
     }
 }
+
