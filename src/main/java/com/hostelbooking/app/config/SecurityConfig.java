@@ -1,15 +1,25 @@
 package com.hostelbooking.app.config;
 
+import com.hostelbooking.app.security.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtFilter jwtFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -21,29 +31,47 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
-                        .requestMatchers("/api/users/**").permitAll()
+                        // 🔓 PUBLIC
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/users/register"
+                        ).permitAll()
 
-                        // STUDENT access
-                        .requestMatchers("/api/bookings").hasRole("STUDENT")
-                        .requestMatchers("/api/bookings/**").hasAnyRole("STUDENT","ADMIN")
-                        .requestMatchers("/api/hostels/**").hasAnyRole("STUDENT","ADMIN")
-                        .requestMatchers("/api/rooms/**").hasAnyRole("STUDENT","ADMIN")
+                        // 👮 ADMIN ONLY (PUT THESE FIRST 🔥)
+                        .requestMatchers(
+                                "/api/bookings/pending",
+                                "/api/bookings/*/approve",
+                                "/api/bookings/*/reject",
+                                "/api/rooms/**"
+                        ).hasRole("ADMIN")
 
-                        // ADMIN access
-                        .requestMatchers("/api/bookings/*/approve").hasRole("ADMIN")
-                        .requestMatchers("/api/bookings/*/reject").hasRole("ADMIN")
-                        .requestMatchers("/api/bookings/*/pending").hasRole("ADMIN")
+                        // 👨‍🎓 STUDENT ONLY
+                        .requestMatchers(
+                                "/api/bookings",
+                                "/api/bookings/user/**",
+                                "/api/bookings/*/cancel"
+                        ).hasRole("STUDENT")
 
+                        // 👨‍🎓 + 👮 BOTH
+                        .requestMatchers(
+                                "/api/hostels",
+                                "/api/hostels/**"
+                        ).hasAnyRole("STUDENT", "ADMIN")
 
-                        // Everything else
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()); // TEMP (for testing)
+
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
 }
-

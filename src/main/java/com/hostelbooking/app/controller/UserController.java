@@ -34,8 +34,8 @@ public class UserController {
     public ResponseEntity<String> login(@RequestBody Map<String,String> req){
         return ResponseEntity.ok(
                 userService.loginUser(req.get("email"), req.get("password"))
-        );
-    }
+       );
+   }
 
 
     @GetMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.hostelbooking.app.service;
 
 import com.hostelbooking.app.BookingStatus;
+import com.hostelbooking.app.Role;
 import com.hostelbooking.app.dto.BookingResponse;
 import com.hostelbooking.app.exception.ApiException;
 import com.hostelbooking.app.model.Booking;
@@ -149,22 +150,25 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    public BookingResponse cancelBooking(Long bookingId, Long userId) {
+    public BookingResponse cancelBooking(Long bookingId, User loggedInUser) {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // 🔐 Ownership check
-        if (!booking.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not allowed to cancel this booking");
-        }
-
+        // ❌ Already cancelled or rejected
         if (booking.getStatus() == BookingStatus.REJECTED ||
                 booking.getStatus() == BookingStatus.CANCELLED) {
             throw new RuntimeException("Booking cannot be cancelled");
         }
 
-        // If approved → free bed
+        // 🔐 STUDENT → only own booking
+        if (loggedInUser.getRole() == Role.STUDENT &&
+                !booking.getUser().getId().equals(loggedInUser.getId())) {
+
+            throw new RuntimeException("You are not allowed to cancel this booking");
+        }
+
+        // ✅ If APPROVED → free bed
         if (booking.getStatus() == BookingStatus.APPROVED) {
             Room room = booking.getRoom();
             room.setAvailableBeds(room.getAvailableBeds() + 1);
@@ -176,6 +180,7 @@ public class BookingService {
 
         return mapToBookingResponse(booking);
     }
+
 
 
 }
